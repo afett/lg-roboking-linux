@@ -1,0 +1,35 @@
+#
+# Copyright 2010 Nexell.
+#
+# Configuration options for the Nexell VIP SoC
+
+comment "Decoder chips on board"
+
+config VIDEO_DEC_TVP5150
+		tristate "Texas Instruments TVP5150 video decoder"
+		depends on VIDEO_V4L2 && I2C
+		---help---
+	  	Support for the Texas Instruments TVP5150 video decoder.
+
+	  	To compile this driver as a module, choose M here: the
+	  	module will be called tvp5150.
+
+comment "V4L2 driver for Nexell"
+
+config V4L2_DRIVER_NEXELL
+	    tristate "V4L2 Drivers for NXP2120"
+	    depends on VIDEO_V4L2 && I2C
+	    --help---
+	    Support for V4L2 driver for NXP2120 VIP port.
+
+config V4L2_DRIVER_NEXELL_MODULE0
+	bool "V4L2 Module 0"
+	depends on V4L2_DRIVER_NEXELL
+	default y
+
+config V4L2_DRIVER_NEXELL_MODULE1
+	bool "V4L2 Module 1"
+	depends on V4L2_DRIVER_NEXELL
+	default n
+
+source "drivers/media/video/nexell/Kconfig-camera"

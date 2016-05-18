@@ -62,6 +62,23 @@ struct ehci_stats {
 
 #define	EHCI_MAX_ROOT_PORTS	15		/* see HCS_N_PORTS */
 
+// swpark add
+#define CONFIG_NXP2120_USB_BUGFIX
+// ksw add for debugging
+//#define CONFIG_NXP2120_USB_BUGFIX_MSG
+
+/* swpark add for nxp2120 usb host bug */
+#ifdef CONFIG_NXP2120_USB_BUGFIX
+struct nxp2120_usb_bugfix {
+	struct urb *urb;
+	void *org_transfer_buffer;
+	dma_addr_t org_transfer_dma;
+	void *transfer_buffer;
+	dma_addr_t transfer_dma;
+	u32 real_transfer_buffer_length;
+};
+#endif
+
 struct ehci_hcd {			/* one per controller */
 	/* glue to PCI and HCD framework */
 	struct ehci_caps __iomem *caps;
@@ -157,6 +174,12 @@ struct ehci_hcd {			/* one per controller */
 	struct dentry		*debug_async;
 	struct dentry		*debug_periodic;
 	struct dentry		*debug_registers;
+#endif
+
+	/* swpark add for nxp2120 usb host bug */
+#ifdef CONFIG_NXP2120_USB_BUGFIX
+    unsigned int         dw_flag_nxp2120_bugfix;
+	struct nxp2120_usb_bugfix nxp2120_bugfix[32];
 #endif
 };
 

@@ -97,10 +97,11 @@ typedef struct board_info {
 	u8		io_mode;		/* 0:word, 2:byte */
 	u8		phy_addr;
 	u8		imr_all;
+	int    Speed;
+	int    op_mode;
 
 	unsigned int	flags;
 	unsigned int	in_suspend :1;
-	unsigned int	wake_supported :1;
 	int		debug_level;
 
 	enum dm9000_type type;
@@ -117,8 +118,6 @@ typedef struct board_info {
 	struct resource *data_req;
 	struct resource *irq_res;
 
-	int		 irq_wake;
-
 	struct mutex	 addr_lock;	/* phy and eeprom access lock */
 
 	struct delayed_work phy_poll;
@@ -128,7 +127,6 @@ typedef struct board_info {
 
 	struct mii_if_info mii;
 	u32		msg_enable;
-	u32		wake_state;
 
 	int		rx_csum;
 	int		can_csum;
@@ -151,6 +149,7 @@ static inline board_info_t *to_dm9000_board(struct net_device *dev)
 
 /* DM9000 network board routine ---------------------------- */
 
+#if !defined(CONFIG_MACH_SMDKV210) && !defined(CONFIG_MACH_VOGUEV210) && !defined(CONFIG_MACH_SMDKC110)
 static void
 dm9000_reset(board_info_t * db)
 {
@@ -162,6 +161,7 @@ dm9000_reset(board_info_t * db)
 	writeb(NCR_RST, db->io_data);
 	udelay(200);
 }
+#endif
 
 /*
  *   Read a byte from I/O port
@@ -183,6 +183,31 @@ iow(board_info_t * db, int reg, int value)
 	writeb(reg, db->io_addr);
 	writeb(value, db->io_data);
 }
+
+#if defined(CONFIG_MACH_SMDKV210) || defined(CONFIG_MACH_VOGUEV210) || defined(CONFIG_MACH_SMDKC110)
+static void dm9000_reset(board_info_t *db)
+{
+	dev_dbg(db->dev, "resetting device\n");
+
+	iow(db, DM9000_GPCR, 0x0f);
+	iow(db, DM9000_GPR, 0);
+	iow(db, DM9000_NCR, 3);
+
+	do {
+		udelay(100);
+	} while (ior(db, DM9000_NCR) & 0x1);
+
+	iow(db, DM9000_NCR, 0);
+	iow(db, DM9000_NCR, 3);
+
+	do {
+		udelay(100);
+	} while (ior(db, DM9000_NCR) & 0x1);
+
+	if ((ior(db, DM9000_PIDL) != 0) || (ior(db, DM9000_PIDH) != 0x90))
+		printk(KERN_INFO "ERROR : resetting ");
+}
+#endif
 
 /* routines for sending block to chip */
 
@@ -475,31 +500,22 @@ static uint32_t dm9000_get_rx_csum(struct net_device *dev)
 	return dm->rx_csum;
 }
 
-static int dm9000_set_rx_csum_unlocked(struct net_device *dev, uint32_t data)
+static int dm9000_set_rx_csum(struct net_device *dev, uint32_t data)
 {
 	board_info_t *dm = to_dm9000_board(dev);
+	unsigned long flags;
 
 	if (dm->can_csum) {
 		dm->rx_csum = data;
+
+		spin_lock_irqsave(&dm->lock, flags);
 		iow(dm, DM9000_RCSR, dm->rx_csum ? RCSR_CSUM : 0);
+		spin_unlock_irqrestore(&dm->lock, flags);
 
 		return 0;
 	}
 
 	return -EOPNOTSUPP;
-}
-
-static int dm9000_set_rx_csum(struct net_device *dev, uint32_t data)
-{
-	board_info_t *dm = to_dm9000_board(dev);
-	unsigned long flags;
-	int ret;
-
-	spin_lock_irqsave(&dm->lock, flags);
-	ret = dm9000_set_rx_csum_unlocked(dev, data);
-	spin_unlock_irqrestore(&dm->lock, flags);
-
-	return ret;
 }
 
 static int dm9000_set_tx_csum(struct net_device *dev, uint32_t data)
@@ -581,54 +597,6 @@ static int dm9000_set_eeprom(struct net_device *dev,
 	return 0;
 }
 
-static void dm9000_get_wol(struct net_device *dev, struct ethtool_wolinfo *w)
-{
-	board_info_t *dm = to_dm9000_board(dev);
-
-	memset(w, 0, sizeof(struct ethtool_wolinfo));
-
-	/* note, we could probably support wake-phy too */
-	w->supported = dm->wake_supported ? WAKE_MAGIC : 0;
-	w->wolopts = dm->wake_state;
-}
-
-static int dm9000_set_wol(struct net_device *dev, struct ethtool_wolinfo *w)
-{
-	board_info_t *dm = to_dm9000_board(dev);
-	unsigned long flags;
-	u32 opts = w->wolopts;
-	u32 wcr = 0;
-
-	if (!dm->wake_supported)
-		return -EOPNOTSUPP;
-
-	if (opts & ~WAKE_MAGIC)
-		return -EINVAL;
-
-	if (opts & WAKE_MAGIC)
-		wcr |= WCR_MAGICEN;
-
-	mutex_lock(&dm->addr_lock);
-
-	spin_lock_irqsave(&dm->lock, flags);
-	iow(dm, DM9000_WCR, wcr);
-	spin_unlock_irqrestore(&dm->lock, flags);
-
-	mutex_unlock(&dm->addr_lock);
-
-	if (dm->wake_state != opts) {
-		/* change in wol state, update IRQ state */
-
-		if (!dm->wake_state)
-			set_irq_wake(dm->irq_wake, 1);
-		else if (dm->wake_state & !opts)
-			set_irq_wake(dm->irq_wake, 0);
-	}
-
-	dm->wake_state = opts;
-	return 0;
-}
-
 static const struct ethtool_ops dm9000_ethtool_ops = {
 	.get_drvinfo		= dm9000_get_drvinfo,
 	.get_settings		= dm9000_get_settings,
@@ -637,8 +605,6 @@ static const struct ethtool_ops dm9000_ethtool_ops = {
 	.set_msglevel		= dm9000_set_msglevel,
 	.nway_reset		= dm9000_nway_reset,
 	.get_link		= dm9000_get_link,
-	.get_wol		= dm9000_get_wol,
-	.set_wol		= dm9000_set_wol,
  	.get_eeprom_len		= dm9000_get_eeprom_len,
  	.get_eeprom		= dm9000_get_eeprom,
  	.set_eeprom		= dm9000_set_eeprom,
@@ -730,7 +696,7 @@ static unsigned char dm9000_type_to_char(enum dm9000_type type)
  *  Set DM9000 multicast address
  */
 static void
-dm9000_hash_table_unlocked(struct net_device *dev)
+dm9000_hash_table(struct net_device *dev)
 {
 	board_info_t *db = netdev_priv(dev);
 	struct dev_mc_list *mcptr = dev->mc_list;
@@ -739,8 +705,11 @@ dm9000_hash_table_unlocked(struct net_device *dev)
 	u32 hash_val;
 	u16 hash_table[4];
 	u8 rcr = RCR_DIS_LONG | RCR_DIS_CRC | RCR_RXEN;
+	unsigned long flags;
 
 	dm9000_dbg(db, 1, "entering %s\n", __func__);
+
+	spin_lock_irqsave(&db->lock, flags);
 
 	for (i = 0, oft = DM9000_PAR; i < 6; i++, oft++)
 		iow(db, oft, dev->dev_addr[i]);
@@ -771,17 +740,144 @@ dm9000_hash_table_unlocked(struct net_device *dev)
 	}
 
 	iow(db, DM9000_RCR, rcr);
+	spin_unlock_irqrestore(&db->lock, flags);
 }
 
-static void
-dm9000_hash_table(struct net_device *dev)
-{
-	board_info_t *db = netdev_priv(dev);
-	unsigned long flags;
+enum DM9KS_PHY_mode {
+	DM9KS_10MHD   = 0, 
+	DM9KS_100MHD  = 1, 
+	DM9KS_10MFD   = 4,
+	DM9KS_100MFD  = 5, 
+	DM9KS_AUTO    = 8, 
+};
 
-	spin_lock_irqsave(&db->lock, flags);
-	dm9000_hash_table_unlocked(dev);
-	spin_unlock_irqrestore(&db->lock, flags);
+static int dm9000_phy_read(struct net_device *dev, int phy_reg_unused, int reg);
+static void dm9000_phy_write(struct net_device *dev, int phyaddr_unused, int reg, int value);
+/* Set PHY operationg mode
+*/
+static void set_PHY_mode(struct net_device *dev)
+{
+    board_info_t *db = netdev_priv(dev);
+#ifndef DM8606
+	u16 phy_reg0 = 0x1000;/* Auto-negotiation*/
+	u16 phy_reg4 = 0x01e1;
+
+	if ( !(db->op_mode & DM9KS_AUTO) ) // op_mode didn't auto sense */
+	{ 
+		switch(db->op_mode) {
+			case DM9KS_10MHD:  phy_reg4 = 0x21; 
+                        	           phy_reg0 = 0x1000;
+					   break;
+			case DM9KS_10MFD:  phy_reg4 = 0x41; 
+					   phy_reg0 = 0x1100;
+                                	   break;
+			case DM9KS_100MHD: phy_reg4 = 0x81; 
+					   phy_reg0 = 0x3000;
+				    	   break;
+			case DM9KS_100MFD: phy_reg4 = 0x101; 
+					   phy_reg0 = 0x3100;
+				   	   break;
+			default: 
+					   break;
+		} // end of switch
+	} // end of if
+#ifdef FLOW_CONTROL
+	dm9000_phy_write(dev, 0,  4, phy_reg4|(1<<10));
+#else
+	dm9000_phy_write(dev, 0,  4, phy_reg4);
+#endif //end of FLOW_CONTROL
+	dm9000_phy_write(dev, 0,  0, phy_reg0|0x200);
+#else
+	/* Fiber mode */
+	dm9000_phy_write(dev, 0,  16, 0x4014);
+	dm9000_phy_write(dev, 0,  0, 0x2100);
+#endif //end of DM8606
+
+	if (db->type == TYPE_DM9000B) /* DM9000B */
+	{
+		//set 10M TX idle =65mA (TX 100% utility is 160mA)
+		dm9000_phy_write(dev, 0,  20, dm9000_phy_read(dev, 0, 20)|(1<<11)|(1<<10));
+		
+		//DM9000B:fix harmonic
+		//For short code:
+		//PHY_REG 27 (1Bh) <- 0000h
+		dm9000_phy_write(dev, 0,  27, 0x0000);
+		//PHY_REG 27 (1Bh) <- AA00h
+		dm9000_phy_write(dev, 0,  27, 0xaa00);
+
+		//PHY_REG 27 (1Bh) <- 0017h
+		dm9000_phy_write(dev, 0,  27, 0x0017);
+		//PHY_REG 27 (1Bh) <- AA17h
+		dm9000_phy_write(dev, 0,  27, 0xaa17);
+
+		//PHY_REG 27 (1Bh) <- 002Fh
+		dm9000_phy_write(dev, 0,  27, 0x002f);
+		//PHY_REG 27 (1Bh) <- AA2Fh
+		dm9000_phy_write(dev, 0,  27, 0xaa2f);
+		
+		//PHY_REG 27 (1Bh) <- 0037h
+		dm9000_phy_write(dev, 0,  27, 0x0037);
+		//PHY_REG 27 (1Bh) <- AA37h
+		dm9000_phy_write(dev, 0,  27, 0xaa37);
+		
+		//PHY_REG 27 (1Bh) <- 0040h
+		dm9000_phy_write(dev, 0,  27, 0x0040);
+		//PHY_REG 27 (1Bh) <- AA40h
+		dm9000_phy_write(dev, 0,  27, 0xaa40);
+		
+		//For long code:
+		//PHY_REG 27 (1Bh) <- 0050h
+		dm9000_phy_write(dev, 0,  27, 0x0050);
+		//PHY_REG 27 (1Bh) <- AA50h
+		dm9000_phy_write(dev, 0,  27, 0xaa50);
+		
+		//PHY_REG 27 (1Bh) <- 006Bh
+		dm9000_phy_write(dev, 0,  27, 0x006b);
+		//PHY_REG 27 (1Bh) <- AA6Bh
+		dm9000_phy_write(dev, 0,  27, 0xaa6b);
+		
+		//PHY_REG 27 (1Bh) <- 007Dh
+		dm9000_phy_write(dev, 0,  27, 0x007d);
+		//PHY_REG 27 (1Bh) <- AA7Dh
+		dm9000_phy_write(dev, 0,  27, 0xaa7d);
+		
+		//PHY_REG 27 (1Bh) <- 008Dh
+		dm9000_phy_write(dev, 0,  27, 0x008d);
+		//PHY_REG 27 (1Bh) <- AA8Dh
+		dm9000_phy_write(dev, 0,  27, 0xaa8d);
+		
+		//PHY_REG 27 (1Bh) <- 009Ch
+		dm9000_phy_write(dev, 0,  27, 0x009c);
+		//PHY_REG 27 (1Bh) <- AA9Ch
+		dm9000_phy_write(dev, 0,  27, 0xaa9c);
+		
+		//PHY_REG 27 (1Bh) <- 00A3h
+		dm9000_phy_write(dev, 0,  27, 0x00a3);
+		//PHY_REG 27 (1Bh) <- AAA3h
+		dm9000_phy_write(dev, 0,  27, 0xaaa3);
+		
+		//PHY_REG 27 (1Bh) <- 00B1h
+		dm9000_phy_write(dev, 0,  27, 0x00b1);
+		//PHY_REG 27 (1Bh) <- AAB1h
+		dm9000_phy_write(dev, 0,  27, 0xaab1);
+		
+		//PHY_REG 27 (1Bh) <- 00C0h
+		dm9000_phy_write(dev, 0,  27, 0x00c0);
+		//PHY_REG 27 (1Bh) <- AAC0h
+		dm9000_phy_write(dev, 0,  27, 0xaac0);
+		
+		//PHY_REG 27 (1Bh) <- 00D2h
+		dm9000_phy_write(dev, 0,  27, 0x00d2);
+		//PHY_REG 27 (1Bh) <- AAD2h
+		dm9000_phy_write(dev, 0,  27, 0xaad2);
+		
+		//PHY_REG 27 (1Bh) <- 00E0h
+		dm9000_phy_write(dev, 0,  27, 0x00e0);
+		//PHY_REG 27 (1Bh) <- AAE0h
+		dm9000_phy_write(dev, 0,  27, 0xaae0);
+		//PHY_REG 27 (1Bh) <- 0000h
+		dm9000_phy_write(dev, 0,  27, 0x0000);
+	}
 }
 
 /*
@@ -792,31 +888,37 @@ dm9000_init_dm9000(struct net_device *dev)
 {
 	board_info_t *db = netdev_priv(dev);
 	unsigned int imr;
-	unsigned int ncr;
 
 	dm9000_dbg(db, 1, "entering %s\n", __func__);
 
-	/* I/O mode */
-	db->io_mode = ior(db, DM9000_ISR) >> 6;	/* ISR bit7:6 keeps I/O mode */
-
 	/* Checksum mode */
-	dm9000_set_rx_csum_unlocked(dev, db->rx_csum);
+	dm9000_set_rx_csum(dev, db->rx_csum);
 
+#if 0
 	/* GPIO0 on pre-activate PHY */
 	iow(db, DM9000_GPR, 0);	/* REG_1F bit0 activate phyxcer */
 	iow(db, DM9000_GPCR, GPCR_GEP_CNTL);	/* Let GPIO0 output */
 	iow(db, DM9000_GPR, 0);	/* Enable PHY */
+#endif
 
-	ncr = (db->flags & DM9000_PLATF_EXT_PHY) ? NCR_EXT_PHY : 0;
+	iow(db, DM9000_GPR, 0);	/* GPR (reg_1Fh)bit GPIO0=0 pre-activate PHY */
+	mdelay(20);		/* wait for PHY power-on ready */
 
-	/* if wol is needed, then always set NCR_WAKEEN otherwise we end
-	 * up dumping the wake events if we disable this. There is already
-	 * a wake-mask in DM9000_WCR */
-	if (db->wake_supported)
-		ncr |= NCR_WAKEEN;
+	/* do a software reset and wait 20us */
+	iow(db, DM9000_NCR, 3);
+	udelay(20);		/* wait 20us at least for software reset ok */
+	iow(db, DM9000_NCR, 3);	/* NCR (reg_00h) bit[0] RST=1 & Loopback=1, reset on */
+	udelay(20);		/* wait 20us at least for software reset ok */
+	
+	/* I/O mode */
+	db->io_mode = ior(db, DM9000_ISR) >> 6;	/* ISR bit7:6 keeps I/O mode */
 
-	iow(db, DM9000_NCR, ncr);
+	if (db->flags & DM9000_PLATF_EXT_PHY)
+		iow(db, DM9000_NCR, NCR_EXT_PHY);
 
+	db->op_mode = DM9KS_AUTO;
+	set_PHY_mode(dev);
+	
 	/* Program operating register */
 	iow(db, DM9000_TCR, 0);	        /* TX Polling clear */
 	iow(db, DM9000_BPTR, 0x3f);	/* Less 3Kb, 200us */
@@ -825,9 +927,14 @@ dm9000_init_dm9000(struct net_device *dev)
 	/* clear TX status */
 	iow(db, DM9000_NSR, NSR_WAKEST | NSR_TX2END | NSR_TX1END);
 	iow(db, DM9000_ISR, ISR_CLR_STATUS); /* Clear interrupt status */
+	
+	if (db->type == TYPE_DM9000B){ /* DM9000B */
+		/* Data bus current driving/sinking capability  */
+		iow(db, DM9000_BUSCR, 0x43);	/* default: 2mA */
+	}
 
 	/* Set address filter table */
-	dm9000_hash_table_unlocked(dev);
+	dm9000_hash_table(dev);
 
 	imr = IMR_PAR | IMR_PTM | IMR_PRM;
 	if (db->type != TYPE_DM9000E)
@@ -1040,8 +1147,8 @@ dm9000_rx(struct net_device *dev)
 		}
 
 		/* Move data from DM9000 */
-		if (GoodPacket &&
-		    ((skb = dev_alloc_skb(RxLen + 4)) != NULL)) {
+		if (GoodPacket
+		    && ((skb = dev_alloc_skb(RxLen + 4)) != NULL)) {
 			skb_reserve(skb, 2);
 			rdptr = (u8 *) skb_put(skb, RxLen - 4);
 
@@ -1123,41 +1230,6 @@ static irqreturn_t dm9000_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static irqreturn_t dm9000_wol_interrupt(int irq, void *dev_id)
-{
-	struct net_device *dev = dev_id;
-	board_info_t *db = netdev_priv(dev);
-	unsigned long flags;
-	unsigned nsr, wcr;
-
-	spin_lock_irqsave(&db->lock, flags);
-
-	nsr = ior(db, DM9000_NSR);
-	wcr = ior(db, DM9000_WCR);
-
-	dev_dbg(db->dev, "%s: NSR=0x%02x, WCR=0x%02x\n", __func__, nsr, wcr);
-
-	if (nsr & NSR_WAKEST) {
-		/* clear, so we can avoid */
-		iow(db, DM9000_NSR, NSR_WAKEST);
-
-		if (wcr & WCR_LINKST)
-			dev_info(db->dev, "wake by link status change\n");
-		if (wcr & WCR_SAMPLEST)
-			dev_info(db->dev, "wake by sample packet\n");
-		if (wcr & WCR_MAGICST )
-			dev_info(db->dev, "wake by magic packet\n");
-		if (!(wcr & (WCR_LINKST | WCR_SAMPLEST | WCR_MAGICST)))
-			dev_err(db->dev, "wake signalled with no reason? "
-				"NSR=0x%02x, WSR=0x%02x\n", nsr, wcr);
-
-	}
-
-	spin_unlock_irqrestore(&db->lock, flags);
-
-	return (nsr & NSR_WAKEST) ? IRQ_HANDLED : IRQ_NONE;
-}
-
 #ifdef CONFIG_NET_POLL_CONTROLLER
 /*
  *Used by netconsole
@@ -1179,6 +1251,7 @@ dm9000_open(struct net_device *dev)
 {
 	board_info_t *db = netdev_priv(dev);
 	unsigned long irqflags = db->irq_res->flags & IRQF_TRIGGER_MASK;
+	int i,reg_nsr;
 
 	if (netif_msg_ifup(db))
 		dev_dbg(db->dev, "enabling %s\n", dev->name);
@@ -1191,12 +1264,31 @@ dm9000_open(struct net_device *dev)
 
 	irqflags |= IRQF_SHARED;
 
-	if (request_irq(dev->irq, dm9000_interrupt, irqflags, dev->name, dev))
+	if (request_irq(dev->irq, &dm9000_interrupt, irqflags, dev->name, dev))
 		return -EAGAIN;
 
 	/* Initialize DM9000 board */
 	dm9000_reset(db);
 	dm9000_init_dm9000(dev);
+
+	db->Speed =10;
+	i=0;
+	do {
+		reg_nsr = ior(db,DM9000_NSR);
+		if(reg_nsr & 0x40) /* link OK!! */
+		{
+			/* wait for detected Speed */
+			mdelay(200);
+			reg_nsr = ior(db,DM9000_NSR);
+			if(reg_nsr & 0x80)
+				db->Speed =10;
+			else
+				db->Speed =100;
+			break;
+		}
+		i++;
+		mdelay(1);
+	}while(i<3000);	/* wait 3 second  */
 
 	/* Init driver variable */
 	db->dbug_cnt = 0;
@@ -1412,29 +1504,6 @@ dm9000_probe(struct platform_device *pdev)
 		goto out;
 	}
 
-	db->irq_wake = platform_get_irq(pdev, 1);
-	if (db->irq_wake >= 0) {
-		dev_dbg(db->dev, "wakeup irq %d\n", db->irq_wake);
-
-		ret = request_irq(db->irq_wake, dm9000_wol_interrupt,
-				  IRQF_SHARED, dev_name(db->dev), ndev);
-		if (ret) {
-			dev_err(db->dev, "cannot get wakeup irq (%d)\n", ret);
-		} else {
-
-			/* test to see if irq is really wakeup capable */
-			ret = set_irq_wake(db->irq_wake, 1);
-			if (ret) {
-				dev_err(db->dev, "irq %d cannot set wakeup (%d)\n",
-					db->irq_wake, ret);
-				ret = 0;
-			} else {
-				set_irq_wake(db->irq_wake, 0);
-				db->wake_supported = 1;
-			}
-		}
-	}
-
 	iosize = resource_size(db->addr_res);
 	db->addr_req = request_mem_region(db->addr_res->start, iosize,
 					  pdev->name);
@@ -1540,7 +1609,8 @@ dm9000_probe(struct platform_device *pdev)
 	case CHIPR_DM9000A:
 		db->type = TYPE_DM9000A;
 		break;
-	case CHIPR_DM9000B:
+	case CHIPR_DM9000B_1:
+	case CHIPR_DM9000B_2:
 		db->type = TYPE_DM9000B;
 		break;
 	default:
@@ -1588,8 +1658,17 @@ dm9000_probe(struct platform_device *pdev)
 		/* try reading from mac */
 		
 		mac_src = "chip";
+	#if 1
 		for (i = 0; i < 6; i++)
 			ndev->dev_addr[i] = ior(db, i+DM9000_PAR);
+	#else
+        ndev->dev_addr[0] = 0x00;
+        ndev->dev_addr[1] = 0x09;
+        ndev->dev_addr[2] = 0xc0;
+        ndev->dev_addr[3] = 0xff;
+        ndev->dev_addr[4] = 0xec;
+        ndev->dev_addr[5] = 0x48;
+	#endif
 	}
 
 	if (!is_valid_ether_addr(ndev->dev_addr))
@@ -1626,14 +1705,10 @@ dm9000_drv_suspend(struct device *dev)
 		db = netdev_priv(ndev);
 		db->in_suspend = 1;
 
-		if (!netif_running(ndev))
-			return 0;
-
-		netif_device_detach(ndev);
-
-		/* only shutdown if not using WoL */
-		if (!db->wake_state)
+		if (netif_running(ndev)) {
+			netif_device_detach(ndev);
 			dm9000_shutdown(ndev);
+		}
 	}
 	return 0;
 }
@@ -1646,13 +1721,10 @@ dm9000_drv_resume(struct device *dev)
 	board_info_t *db = netdev_priv(ndev);
 
 	if (ndev) {
+
 		if (netif_running(ndev)) {
-			/* reset if we were not in wake mode to ensure if
-			 * the device was powered off it is in a known state */
-			if (!db->wake_state) {
-				dm9000_reset(db);
-				dm9000_init_dm9000(ndev);
-			}
+			dm9000_reset(db);
+			dm9000_init_dm9000(ndev);
 
 			netif_device_attach(ndev);
 		}
@@ -1662,7 +1734,7 @@ dm9000_drv_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops dm9000_drv_pm_ops = {
+static struct dev_pm_ops dm9000_drv_pm_ops = {
 	.suspend	= dm9000_drv_suspend,
 	.resume		= dm9000_drv_resume,
 };

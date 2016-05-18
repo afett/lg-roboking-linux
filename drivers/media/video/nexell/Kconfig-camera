@@ -1,0 +1,87 @@
+choice
+	prompt "External Camera1"
+	depends on V4L2_DRIVER_NEXELL
+
+config CAMERA1_S5K4BA
+	bool "Samsung S5K4BA"
+	depends on V4L2_DRIVER_NEXELL
+	---help---
+	  Samsung S5K4BA mobile camera support
+
+config CAMERA1_S5K3BA
+	bool "Samsung S5K3BA"
+	depends on V4L2_DRIVER_NEXELL
+	---help---
+	  Samsung S5K3BA mobile camera support
+
+config CAMERA1_MT9M111
+	bool "Aptina mt9m111"
+	depends on V4L2_DRIVER_NEXELL
+	---help---
+	  Driver for Micron/Aptina sensor MT9M111.
+	  It supports MT9M111 1.3M pixel camera.
+
+config CAMERA1_POA030
+	bool "Pixelplus POA030R"
+	depends on V4L2_DRIVER_NEXELL
+	---help---
+	  Driver for Pixelplus POA030 sensor.
+	  It supports POA030R VGA camera.
+
+config CAMERA1_HI161
+	bool "Hynix Hi161 1/6inch camera"
+	depends on V4L2_DRIVER_NEXELL
+	---help---
+	  Driver for Hi161 sensor.
+	  It supports Hi161 1.3M camera.
+
+endchoice
+choice
+	prompt "External Camera2"
+	depends on V4L2_DRIVER_NEXELL && V4L2_DRIVER_NEXELL_MODULE1
+
+config CAMERA2_S5K4BA
+	bool "Samsung S5K4BA"
+	depends on V4L2_DRIVER_NEXELL
+	---help---
+	  Samsung S5K4BA mobile camera support
+
+config CAMERA2_S5K3BA
+	bool "Samsung S5K3BA"
+	depends on V4L2_DRIVER_NEXELL
+	---help---
+	  Samsung S5K3BA mobile camera support
+
+config CAMERA2_T8EJ0
+	bool "Cowel/Toshiba T8EJ0"
+	depends on V4L2_DRIVER_NEXELL
+	---help---
+	  Cowell uses Toshiba CIS sensor T8EJ0.
+	  It supports T8EJ0 2M pixel camera.
+
+config CAMERA2_MT9M111
+	bool "Aptina mt9m111"
+	depends on V4L2_DRIVER_NEXELL
+	---help---
+	  Driver for Micron/Aptina sensor MT9M111.
+	  It supports MT9M111 1.3M pixel camera.
+
+config CAMERA2_POA030
+	bool "Pixelplus POA030R"
+	depends on V4L2_DRIVER_NEXELL
+	---help---
+	  Driver for Pixelplus POA030 sensor.
+	  It supports POA030R VGA camera.
+
+config CAMERA2_HI161
+	bool "Hynix Hi161 1/6inch camera"
+	depends on V4L2_DRIVER_NEXELL
+	---help---
+	  Driver for Hi161 sensor.
+	  It supports Hi161 1.3M camera.
+
+config CAMERA2_NONE
+        bool "None"
+        depends on V4L2_DRIVER_NEXELL
+
+endchoice

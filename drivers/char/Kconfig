@@ -901,6 +901,12 @@ config XILINX_HWICAP
 
 	  If unsure, say N.
 
+config MOSTGPLED
+	tristate "Mostitech/LGE GPLED driver"
+	depends on ARCH_NEXELL
+	---help---
+	This driver provide compatible interface for GPLED. 
+
 config R3964
 	tristate "Siemens R3964 line discipline"
 	---help---

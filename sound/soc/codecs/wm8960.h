@@ -73,10 +73,12 @@
  */
 #define WM8960_SYSCLKDIV 		0
 #define WM8960_DACDIV			1
-#define WM8960_OPCLKDIV			2
-#define WM8960_DCLKDIV			3
-#define WM8960_TOCLKSEL			4
-#define WM8960_SYSCLKSEL		5
+#define WM8960_ADCDIV			2
+#define WM8960_OPCLKDIV			3
+#define WM8960_DCLKDIV			4
+#define WM8960_TOCLKSEL			5
+#define WM8960_SYSCLKSEL		6
+#define WM8960_BCLKDIV  		7
 
 #define WM8960_SYSCLK_DIV_1		(0 << 1)
 #define WM8960_SYSCLK_DIV_2		(2 << 1)
@@ -91,6 +93,14 @@
 #define WM8960_DAC_DIV_4		(4 << 3)
 #define WM8960_DAC_DIV_5_5		(5 << 3)
 #define WM8960_DAC_DIV_6		(6 << 3)
+
+#define WM8960_ADC_DIV_1		(0 << 6)
+#define WM8960_ADC_DIV_1_5		(1 << 6)
+#define WM8960_ADC_DIV_2		(2 << 6)
+#define WM8960_ADC_DIV_3		(3 << 6)
+#define WM8960_ADC_DIV_4		(4 << 6)
+#define WM8960_ADC_DIV_5_5		(5 << 6)
+#define WM8960_ADC_DIV_6		(6 << 6)
 
 #define WM8960_DCLK_DIV_1_5		(0 << 6)
 #define WM8960_DCLK_DIV_2		(1 << 6)
@@ -111,8 +121,26 @@
 #define WM8960_OPCLK_DIV_5_5		(4 << 0)
 #define WM8960_OPCLK_DIV_6		(5 << 0)
 
+#define WM8960_BCLK_DIV_1		(0 << 0)
+#define WM8960_BCLK_DIV_1_5		(1 << 0)
+#define WM8960_BCLK_DIV_2		(2 << 0)
+#define WM8960_BCLK_DIV_3		(3 << 0)
+#define WM8960_BCLK_DIV_4	    (4 << 0)
+#define WM8960_BCLK_DIV_5_5		(5 << 0)
+#define WM8960_BCLK_DIV_6		(6 << 0)
+#define WM8960_BCLK_DIV_8		(7 << 0)
+#define WM8960_BCLK_DIV_11		(8 << 0)
+#define WM8960_BCLK_DIV_12		(9 << 0)
+#define WM8960_BCLK_DIV_16	    (10 << 0)
+#define WM8960_BCLK_DIV_22		(11 << 0)
+#define WM8960_BCLK_DIV_24		(12 << 0)
+#define WM8960_BCLK_DIV_32		(13 << 0)
+
 extern struct snd_soc_dai wm8960_dai;
+extern struct snd_soc_dai wm8960_2_dai;
+extern struct snd_soc_dai wm8960_3_dai;
 extern struct snd_soc_codec_device soc_codec_dev_wm8960;
+extern struct snd_soc_codec_device soc_codec_dev_two_wm8960;
 
 #define WM8960_DRES_400R 0
 #define WM8960_DRES_200R 1

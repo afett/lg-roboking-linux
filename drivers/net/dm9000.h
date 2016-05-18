@@ -46,11 +46,15 @@
 #define DM9000_SMCR            0x2F
 
 #define DM9000_ETXCSR          0x30
-#define DM9000_TCCR	       0x31
-#define DM9000_RCSR	       0x32
+#define DM9000_TCCR	           0x31
+#define DM9000_RCSR	           0x32
+
+#define DM9000_BUSCR           0x38
+#define DM9000_INTCR           0x39
 
 #define CHIPR_DM9000A	       0x19
-#define CHIPR_DM9000B	       0x1A
+#define CHIPR_DM9000B_1	       0x1A
+#define CHIPR_DM9000B_2	       0x1B
 
 #define DM9000_MRCMDX          0xF0
 #define DM9000_MRCMD           0xF2
@@ -110,13 +114,6 @@
 #define RSR_AE              (1<<2)
 #define RSR_CE              (1<<1)
 #define RSR_FOE             (1<<0)
-
-#define WCR_LINKEN		(1 << 5)
-#define WCR_SAMPLEEN		(1 << 4)
-#define WCR_MAGICEN		(1 << 3)
-#define WCR_LINKST		(1 << 2)
-#define WCR_SAMPLEST		(1 << 1)
-#define WCR_MAGICST		(1 << 0)
 
 #define FCTR_HWOT(ot)	(( ot & 0xf ) << 4 )
 #define FCTR_LWOT(ot)	( ot & 0xf )

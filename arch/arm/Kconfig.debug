@@ -127,5 +127,15 @@ config DEBUG_S3C_UART
 
 	  The uncompressor code port configuration is now handled
 	  by CONFIG_S3C_LOWLEVEL_UART_PORT.
+	  
+config DEBUG_NEXELL_UART
+    depends on PLAT_NEXELL
+    int "NEXELL UART to use for low-level debug"
+    default "0"
+    help
+        Choice for UART for kernel low-level using NEXELL UARTS,
+	    should be between zero and one. The port must have been
+	    initialised by the boot-loader before use.
+      
 
 endmenu

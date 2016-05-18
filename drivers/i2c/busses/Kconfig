@@ -565,6 +565,22 @@ config I2C_VERSATILE
 	  This driver can also be built as a module.  If so, the module
 	  will be called i2c-versatile.
 
+config I2C_NEXELL
+	tristate "Nexell I2C (NX series)"
+	depends on ARCH_NEXELL
+	help
+	  Support for NX series processor's I2C driver.
+
+config I2C_NEXELL_PORT0
+	bool "Nexell I2C port 0"
+	depends on I2C_NEXELL
+	default y
+
+config I2C_NEXELL_PORT1
+	bool "Nexell I2C port 1"
+	depends on I2C_NEXELL
+	default n
+
 comment "External I2C/SMBus adapter drivers"
 
 config I2C_PARPORT
