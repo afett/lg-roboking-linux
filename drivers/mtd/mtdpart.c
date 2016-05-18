@@ -70,7 +70,7 @@ static int part_read(struct mtd_info *mtd, loff_t from, size_t len,
 	int res;
 
 #if CONFIG_MTD_REMAP_SQUASHFS
-	/* Walson: calucate physical address */
+	/* Walson: calucate physical address */  
 	struct nand_chip *this = part->master->priv;
 	unsigned logic_b, phys_b;
 	unsigned i;
@@ -81,7 +81,7 @@ static int part_read(struct mtd_info *mtd, loff_t from, size_t len,
 		{
 			if ( part_mapping[i] && part_mapping[i]->part_mtd==mtd )
 			{
-				/* remap from logic block to physical block */
+				/* remap from logic block to physical block */  
 				logic_b = from >> this->bbt_erase_shift;
 				if ( logic_b < part_mapping[i]->nBlock )
 				{
@@ -169,7 +169,7 @@ static int part_read_oob(struct mtd_info *mtd, loff_t from,
 		{
 			if ( part_mapping[i] && part_mapping[i]->part_mtd==mtd )
 			{
-				/* remap from logic block to physical block */
+				/* remap from logic block to physical block */  
 				logic_b = from >> this->bbt_erase_shift;
 				if ( logic_b < part_mapping[i]->nBlock )
 				{
@@ -386,7 +386,7 @@ static int part_block_markbad(struct mtd_info *mtd, loff_t ofs)
 	return res;
 }
 
-#if CONFIG_MTD_REMAP_SQUASHFS
+#if CONFIG_MTD_REMAP_SQUASHFS   
 /* Walson:
  * This function create a partition mapping
  */
@@ -431,7 +431,7 @@ static int part_create_partition_mapping ( struct mtd_info *part_mtd )
 			part_mtd->name);
 		return -1;
 	}
-
+   
 	map_part->map_table = kmalloc(sizeof(unsigned)*(part_mtd->size>>this->bbt_erase_shift), GFP_KERNEL);
 	if ( !map_part->map_table )
 	{
@@ -442,7 +442,7 @@ static int part_create_partition_mapping ( struct mtd_info *part_mtd )
 	}
 	memset(map_part->map_table, 0xFF, sizeof(unsigned)*(part_mtd->size>>this->bbt_erase_shift));
 
-	/* Create partition mapping table */
+	/* Create partition mapping table */  
 	logical_b = 0;
 	for ( offset=0; offset<part_mtd->size; offset+=part_mtd->erasesize )
 	{
@@ -465,7 +465,7 @@ static int part_create_partition_mapping ( struct mtd_info *part_mtd )
 	part_mapping_count++;
 	return 0;
 }
-
+   
 static void part_del_partition_mapping( struct mtd_info *part_mtd )
 {
 	int index;
@@ -499,7 +499,7 @@ int del_mtd_partitions(struct mtd_info *master)
 	list_for_each_entry_safe(slave, next, &mtd_partitions, list)
 		if (slave->master == master) {
 #if CONFIG_MTD_REMAP_SQUASHFS
-			/* walson: Free partition mapping if created */
+			/* walson: Free partition mapping if created */  
 			part_del_partition_mapping(&slave->mtd);
 #endif
 			list_del(&slave->list);
@@ -684,8 +684,8 @@ out_register:
 	/* register our partition */
 	add_mtd_device(&slave->mtd);
 #if CONFIG_MTD_REMAP_SQUASHFS
-	/* Walson: Build partition mapping for squashfs */
-	if ( slave->mtd.name && 0==strcmp(slave->mtd.name, "nand.rootfs")) {
+	/* Walson: Build partition mapping for squashfs */               
+	if ( slave->mtd.name && 0==strcmp(slave->mtd.name, "nand.rootfs"))	{                                   
 			part_create_partition_mapping(&slave->mtd);
 	}
 	else {

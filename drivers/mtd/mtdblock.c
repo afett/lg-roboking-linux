@@ -18,7 +18,7 @@
 #include <linux/mtd/blktrans.h>
 #include <linux/mutex.h>
 
-// ksw : READERROR Correction for SQUASHFS
+// ksw : READERROR Correction for SQUASHFS 
 #ifdef CONFIG_SQUASHFS
 #define CONFIG_SQUASHFS_NAND_EUCLEAN_SKIP
 #endif
