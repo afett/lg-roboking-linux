@@ -18,6 +18,10 @@
 #include <linux/mtd/blktrans.h>
 #include <linux/mutex.h>
 
+// ksw : READERROR Correction for SQUASHFS
+#ifdef CONFIG_SQUASHFS
+#define CONFIG_SQUASHFS_NAND_EUCLEAN_SKIP
+#endif
 
 static struct mtdblk_dev {
 	struct mtd_info *mtd;
@@ -245,7 +249,17 @@ static int mtdblock_readsect(struct mtd_blktrans_dev *dev,
 			      unsigned long block, char *buf)
 {
 	struct mtdblk_dev *mtdblk = mtdblks[dev->devnum];
+#if defined(CONFIG_SQUASHFS_NAND_EUCLEAN_SKIP)
+	int ret;
+
+	ret = do_cached_read(mtdblk, block<<9, 512, buf);
+	if ((dev->devnum == 2) && (ret == -EUCLEAN))
+		return 0;
+	else
+		return ret;
+#else
 	return do_cached_read(mtdblk, block<<9, 512, buf);
+#endif	
 }
 
 static int mtdblock_writesect(struct mtd_blktrans_dev *dev,
