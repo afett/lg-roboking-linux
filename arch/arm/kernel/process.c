@@ -194,6 +194,7 @@ __setup("reboot=", reboot_setup);
 
 void machine_halt(void)
 {
+	arch_halt();
 }
 
 
