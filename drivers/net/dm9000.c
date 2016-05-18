@@ -744,11 +744,11 @@ dm9000_hash_table(struct net_device *dev)
 }
 
 enum DM9KS_PHY_mode {
-	DM9KS_10MHD   = 0,
-	DM9KS_100MHD  = 1,
+	DM9KS_10MHD   = 0, 
+	DM9KS_100MHD  = 1, 
 	DM9KS_10MFD   = 4,
-	DM9KS_100MFD  = 5,
-	DM9KS_AUTO    = 8,
+	DM9KS_100MFD  = 5, 
+	DM9KS_AUTO    = 8, 
 };
 
 static int dm9000_phy_read(struct net_device *dev, int phy_reg_unused, int reg);
@@ -763,21 +763,21 @@ static void set_PHY_mode(struct net_device *dev)
 	u16 phy_reg4 = 0x01e1;
 
 	if ( !(db->op_mode & DM9KS_AUTO) ) // op_mode didn't auto sense */
-	{
+	{ 
 		switch(db->op_mode) {
-			case DM9KS_10MHD:  phy_reg4 = 0x21;
+			case DM9KS_10MHD:  phy_reg4 = 0x21; 
                         	           phy_reg0 = 0x1000;
 					   break;
-			case DM9KS_10MFD:  phy_reg4 = 0x41;
+			case DM9KS_10MFD:  phy_reg4 = 0x41; 
 					   phy_reg0 = 0x1100;
                                 	   break;
-			case DM9KS_100MHD: phy_reg4 = 0x81;
+			case DM9KS_100MHD: phy_reg4 = 0x81; 
 					   phy_reg0 = 0x3000;
 				    	   break;
-			case DM9KS_100MFD: phy_reg4 = 0x101;
+			case DM9KS_100MFD: phy_reg4 = 0x101; 
 					   phy_reg0 = 0x3100;
 				   	   break;
-			default:
+			default: 
 					   break;
 		} // end of switch
 	} // end of if
@@ -797,7 +797,7 @@ static void set_PHY_mode(struct net_device *dev)
 	{
 		//set 10M TX idle =65mA (TX 100% utility is 160mA)
 		dm9000_phy_write(dev, 0,  20, dm9000_phy_read(dev, 0, 20)|(1<<11)|(1<<10));
-
+		
 		//DM9000B:fix harmonic
 		//For short code:
 		//PHY_REG 27 (1Bh) <- 0000h
@@ -814,63 +814,63 @@ static void set_PHY_mode(struct net_device *dev)
 		dm9000_phy_write(dev, 0,  27, 0x002f);
 		//PHY_REG 27 (1Bh) <- AA2Fh
 		dm9000_phy_write(dev, 0,  27, 0xaa2f);
-
+		
 		//PHY_REG 27 (1Bh) <- 0037h
 		dm9000_phy_write(dev, 0,  27, 0x0037);
 		//PHY_REG 27 (1Bh) <- AA37h
 		dm9000_phy_write(dev, 0,  27, 0xaa37);
-
+		
 		//PHY_REG 27 (1Bh) <- 0040h
 		dm9000_phy_write(dev, 0,  27, 0x0040);
 		//PHY_REG 27 (1Bh) <- AA40h
 		dm9000_phy_write(dev, 0,  27, 0xaa40);
-
+		
 		//For long code:
 		//PHY_REG 27 (1Bh) <- 0050h
 		dm9000_phy_write(dev, 0,  27, 0x0050);
 		//PHY_REG 27 (1Bh) <- AA50h
 		dm9000_phy_write(dev, 0,  27, 0xaa50);
-
+		
 		//PHY_REG 27 (1Bh) <- 006Bh
 		dm9000_phy_write(dev, 0,  27, 0x006b);
 		//PHY_REG 27 (1Bh) <- AA6Bh
 		dm9000_phy_write(dev, 0,  27, 0xaa6b);
-
+		
 		//PHY_REG 27 (1Bh) <- 007Dh
 		dm9000_phy_write(dev, 0,  27, 0x007d);
 		//PHY_REG 27 (1Bh) <- AA7Dh
 		dm9000_phy_write(dev, 0,  27, 0xaa7d);
-
+		
 		//PHY_REG 27 (1Bh) <- 008Dh
 		dm9000_phy_write(dev, 0,  27, 0x008d);
 		//PHY_REG 27 (1Bh) <- AA8Dh
 		dm9000_phy_write(dev, 0,  27, 0xaa8d);
-
+		
 		//PHY_REG 27 (1Bh) <- 009Ch
 		dm9000_phy_write(dev, 0,  27, 0x009c);
 		//PHY_REG 27 (1Bh) <- AA9Ch
 		dm9000_phy_write(dev, 0,  27, 0xaa9c);
-
+		
 		//PHY_REG 27 (1Bh) <- 00A3h
 		dm9000_phy_write(dev, 0,  27, 0x00a3);
 		//PHY_REG 27 (1Bh) <- AAA3h
 		dm9000_phy_write(dev, 0,  27, 0xaaa3);
-
+		
 		//PHY_REG 27 (1Bh) <- 00B1h
 		dm9000_phy_write(dev, 0,  27, 0x00b1);
 		//PHY_REG 27 (1Bh) <- AAB1h
 		dm9000_phy_write(dev, 0,  27, 0xaab1);
-
+		
 		//PHY_REG 27 (1Bh) <- 00C0h
 		dm9000_phy_write(dev, 0,  27, 0x00c0);
 		//PHY_REG 27 (1Bh) <- AAC0h
 		dm9000_phy_write(dev, 0,  27, 0xaac0);
-
+		
 		//PHY_REG 27 (1Bh) <- 00D2h
 		dm9000_phy_write(dev, 0,  27, 0x00d2);
 		//PHY_REG 27 (1Bh) <- AAD2h
 		dm9000_phy_write(dev, 0,  27, 0xaad2);
-
+		
 		//PHY_REG 27 (1Bh) <- 00E0h
 		dm9000_phy_write(dev, 0,  27, 0x00e0);
 		//PHY_REG 27 (1Bh) <- AAE0h
@@ -909,7 +909,7 @@ dm9000_init_dm9000(struct net_device *dev)
 	udelay(20);		/* wait 20us at least for software reset ok */
 	iow(db, DM9000_NCR, 3);	/* NCR (reg_00h) bit[0] RST=1 & Loopback=1, reset on */
 	udelay(20);		/* wait 20us at least for software reset ok */
-
+	
 	/* I/O mode */
 	db->io_mode = ior(db, DM9000_ISR) >> 6;	/* ISR bit7:6 keeps I/O mode */
 
@@ -918,7 +918,7 @@ dm9000_init_dm9000(struct net_device *dev)
 
 	db->op_mode = DM9KS_AUTO;
 	set_PHY_mode(dev);
-
+	
 	/* Program operating register */
 	iow(db, DM9000_TCR, 0);	        /* TX Polling clear */
 	iow(db, DM9000_BPTR, 0x3f);	/* Less 3Kb, 200us */
@@ -927,7 +927,7 @@ dm9000_init_dm9000(struct net_device *dev)
 	/* clear TX status */
 	iow(db, DM9000_NSR, NSR_WAKEST | NSR_TX2END | NSR_TX1END);
 	iow(db, DM9000_ISR, ISR_CLR_STATUS); /* Clear interrupt status */
-
+	
 	if (db->type == TYPE_DM9000B){ /* DM9000B */
 		/* Data bus current driving/sinking capability  */
 		iow(db, DM9000_BUSCR, 0x43);	/* default: 2mA */
@@ -1721,6 +1721,7 @@ dm9000_drv_resume(struct device *dev)
 	board_info_t *db = netdev_priv(ndev);
 
 	if (ndev) {
+
 		if (netif_running(ndev)) {
 			dm9000_reset(db);
 			dm9000_init_dm9000(ndev);

@@ -46,15 +46,15 @@
 #define DM9000_SMCR            0x2F
 
 #define DM9000_ETXCSR          0x30
-#define DM9000_TCCR	       0x31
-#define DM9000_RCSR	       0x32
+#define DM9000_TCCR	           0x31
+#define DM9000_RCSR	           0x32
 
-#define DM9000_BUSCR          0x38
-#define DM9000_INTCR          0x39
+#define DM9000_BUSCR           0x38
+#define DM9000_INTCR           0x39
 
 #define CHIPR_DM9000A	       0x19
-#define CHIPR_DM9000B_1       0x1A
-#define CHIPR_DM9000B_2       0x1B
+#define CHIPR_DM9000B_1	       0x1A
+#define CHIPR_DM9000B_2	       0x1B
 
 #define DM9000_MRCMDX          0xF0
 #define DM9000_MRCMD           0xF2
