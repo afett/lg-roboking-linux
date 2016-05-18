@@ -1,0 +1,67 @@
+# arch/arm/mach-nxp2120/Kconfig
+#
+# Copyright(c) 2011 MOSTiTECH co., ltd.
+#
+# Configuration options for the nxp2120 CPU
+
+config CPU_NXP2120
+        bool "Nexell's P2120 SOC CPU"
+        depends on PLAT_NEXELL
+        select CPU_V6
+        select GENERIC_TIME
+        help
+           Enable NXP2120 CPU support
+
+config MACH_MOST2120
+        bool "mostitech nxp2120 board"
+        depends on CPU_NXP2120
+        help
+           Machine support for the MOSTiTECH's nxp2120 board
+
+choice
+        prompt "Model name"
+        depends on MACH_MOST2120
+
+config MODEL_RKSII_CI
+        bool "LG RKSII CI"
+        depends on MACH_MOST2120
+
+config MODEL_RKSII_VR
+        bool "LG RKSII VR"
+        depends on MACH_MOST2120
+
+config MODEL_RKSII_VR_FEMALE
+        bool "LG RKSII VR FEMALE"
+        depends on MACH_MOST2120
+
+config MODEL_RKSII_VR_MALE
+        bool "LG RKSII VR MALE"
+        depends on MACH_MOST2120
+
+config MODEL_RKSII_VI
+        bool "LG RKSII VI"
+        depends on MACH_MOST2120
+
+config MODEL_RKN
+        bool "LG RK Network"
+        depends on MACH_MOST2120
+
+config MODEL_RK_HIT_V2
+        bool "LG RK HIT V2"
+        depends on MACH_MOST2120
+
+config MODEL_RK_HIT_V4
+        bool "LG RK HIT V4"
+        depends on MACH_MOST2120
+
+config MODEL_RK_HIT_3DSENS
+        bool "LG RK HIT 3D Sensing"
+        depends on MACH_MOST2120
+endchoice
+
+config MOST2120_UBIFS_DATA
+        bool "MOST2120 Another data partition"
+        depends on MACH_MOST2120
+        help
+          Another data partion is implemented for future use.
+

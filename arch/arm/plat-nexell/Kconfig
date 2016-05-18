@@ -1,0 +1,13 @@
+#
+# Copyright 2011 mostitech.
+#
+# Configuration options for the Nexell board
+
+config PLAT_NEXELL
+	bool "NEXELL architecture"
+	depends on ARCH_NEXELL
+	default y
+	help
+  	   Nexell's SOC support code.
+
+
