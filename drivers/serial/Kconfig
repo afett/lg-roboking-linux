@@ -62,7 +62,7 @@ config SERIAL_8250_CONSOLE
 	  You can set that using a kernel command line option such as
 	  "console=uart8250,io,0x3f8,9600n8"
 	  "console=uart8250,mmio,0xff5e0000,115200n8".
-	  and it will switch to normal serial console when the corresponding 
+	  and it will switch to normal serial console when the corresponding
 	  port is ready.
 	  "earlycon=uart8250,io,0x3f8,9600n8"
 	  "earlycon=uart8250,mmio,0xff5e0000,115200n8".
@@ -464,7 +464,7 @@ config SERIAL_SAMSUNG_UARTS
 	help
 	  Select the number of available UART ports for the Samsung S3C
 	  serial driver
-	
+
 config SERIAL_SAMSUNG_DEBUG
 	bool "Samsung SoC serial debug"
 	depends on SERIAL_SAMSUNG && DEBUG_LL
@@ -988,8 +988,8 @@ config PDC_CONSOLE
 	depends on PARISC && !SERIAL_MUX && VT
 	default n
 	help
-	  Saying Y here will enable the software based PDC console to be 
-	  used as the system console.  This is useful for machines in 
+	  Saying Y here will enable the software based PDC console to be
+	  used as the system console.  This is useful for machines in
 	  which the hardware based console has not been written yet.  The
 	  following steps must be competed to use the PDC console:
 
@@ -1197,7 +1197,7 @@ config SERIAL_CPM
 	depends on CPM2 || 8xx
 	select SERIAL_CORE
 	help
-	  This driver supports the SCC and SMC serial ports on Motorola 
+	  This driver supports the SCC and SMC serial ports on Motorola
 	  embedded PowerPC that contain a CPM1 (8xx) or CPM2 (8xxx)
 
 config SERIAL_CPM_CONSOLE
