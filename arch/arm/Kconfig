@@ -646,10 +646,11 @@ config ARCH_NEXELL
 	select GENERIC_CLOCKEVENTS
 	help
 	  Nexell arm based systems
+	  
 
 config ARCH_SHARK
 	bool "Shark"
-	select CPU_SA110
+	select CPU_SA110                           
 	select ISA
 	select ISA_DMA
 	select ZONE_DMA
