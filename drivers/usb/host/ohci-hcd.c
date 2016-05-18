@@ -1089,6 +1089,11 @@ MODULE_LICENSE ("GPL");
 #define TMIO_OHCI_DRIVER	ohci_hcd_tmio_driver
 #endif
 
+#ifdef CONFIG_ARCH_NEXELL
+#include "ohci-nexell.c"
+#define PLATFORM_DRIVER		ohci_hcd_nexell_driver
+#endif
+
 #if	!defined(PCI_DRIVER) &&		\
 	!defined(PLATFORM_DRIVER) &&	\
 	!defined(OF_PLATFORM_DRIVER) &&	\
