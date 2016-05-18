@@ -540,6 +540,47 @@ config SERIAL_S5PC100
 	help
 	  Serial port support for the Samsung S5PC100 SoCs
 
+config SERIAL_NEXELL_UART
+    tristate "NXP2120 serial port support"
+    depends on CPU_NXP2120
+    select SERIAL_CORE
+    default y
+    help
+      Serial port support for the Nexell's NXP2120 SOC.
+
+config SERIAL_NEXELL_CONSOLE
+	bool "Support for console on Nexell Soc serial port"
+	depends on SERIAL_NEXELL_UART=y
+	select SERIAL_CORE_CONSOLE
+	help
+	  Allow selection of the Nexell's nxp2120 serial ports for use as
+	  an virtual console.
+
+config SERIAL_NEXELL_UART_PORT0
+	bool "Nexell serial port 0"
+	depends on SERIAL_NEXELL_UART
+	default y
+
+config SERIAL_NEXELL_UART_PORT0_RXDMA
+		bool "Support DMA on Nexell serial port 0"
+		depends on SERIAL_NEXELL_UART
+		default n
+
+config SERIAL_NEXELL_UART_PORT1
+	bool "Nexell serial port 1"
+	depends on SERIAL_NEXELL_UART
+	default n
+
+config SERIAL_NEXELL_UART_PORT1_RXDMA
+		bool "Support DMA on Nexell serial port 1"
+		depends on SERIAL_NEXELL_UART
+		default n
+
+config MANGLED_BAUDRATE
+        bool "Mangled baudrate for serial port 1"
+        depends on SERIAL_NEXELL_UART_PORT1
+        default n
+
 config SERIAL_MAX3100
 	tristate "MAX3100 support"
 	depends on SPI
