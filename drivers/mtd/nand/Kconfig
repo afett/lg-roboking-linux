@@ -184,6 +184,25 @@ config MTD_NAND_S3C2410_HWECC
 	  incorrect ECC generation, and if using these, the default of
 	  software ECC is preferable.
 
+config MTD_NAND_NEXELL
+	tristate "Nexell Nand support (NX series)"
+	depends on ARCH_NEXELL
+	help
+	  This enables the NAND flash controller on the NX series
+
+config MTD_NAND_NEXELL_PARTS_MAP
+	bool "Support NAND partition map file (cfg_nand_map.h)"
+	depends on MTD_NAND_NEXELL && MTD_PARTITIONS
+	help
+	  Use NAND partition table header file (cfg_nand_map.h)
+
+config MTD_NAND_NEXELL_HWECC
+	bool "Nexell Nand Hardware ECC"
+	depends on MTD_NAND_NEXELL
+	help
+	  Enable the use of the NX series's internal ECC generator when
+	  using NAND.
+
 config MTD_NAND_NDFC
 	tristate "NDFC NanD Flash Controller"
 	depends on 4xx
