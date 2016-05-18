@@ -807,6 +807,16 @@ config VIDEO_CAFE_CCIC
 	  CMOS camera controller.  This is the controller found on first-
 	  generation OLPC systems.
 
+config VIDEO_NEXELL
+	tristate "Nexell Camera Capture Interface driver"
+	depends on VIDEO_DEV && ARCH_NEXELL
+	---help---
+	  This is a v4l2 driver for the Nexell VIP camera capture interface
+
+if VIDEO_NEXELL
+source "drivers/media/video/nexell/Kconfig"
+endif
+
 config SOC_CAMERA
 	tristate "SoC camera support"
 	depends on VIDEO_V4L2 && HAS_DMA && I2C
