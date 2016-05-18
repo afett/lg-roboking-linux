@@ -1,5 +1,9 @@
 Linux kernel sources for LG roboking (hombot) VR6XXX
 
+DISCLAIMER: This is no official LG Electronics source code release.
+I am in no way affiliated with LG Electronics. If you have questions
+about this repo please contact me via email at a.fett@gmx.de
+
 This repo contains the "sanitized" sources of GPL/kernel-2.6.33 directory
 from the VR6XXX_OpenSource_v1.3.1.zip released by LG[1].
 
