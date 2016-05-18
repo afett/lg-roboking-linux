@@ -20,7 +20,7 @@
 
 #define MQ_PRIO_MAX 	32768
 /* per-uid limit of kernel memory used by mqueue, in bytes */
-#define MQ_BYTES_MAX	819200
+#define MQ_BYTES_MAX	8392704 /* Changed by ksw, formerly 819200 */
 
 struct mq_attr {
 	long	mq_flags;	/* message queue flags			*/
