@@ -834,6 +834,72 @@ dead:
  * NOTE:  control, bulk, and interrupt share the same code to append TDs
  * to a (possibly active) QH, and the same QH scanning code.
  */
+
+/* swpark add for nxp2120 usb host bug */
+#ifdef CONFIG_NXP2120_USB_BUGFIX
+static inline int is_bugfix_nxp2120_usb(struct urb *urb)
+{
+	if (usb_urb_dir_out(urb)) {
+		int align_4 = urb->transfer_buffer_length % 4;
+		if (align_4 == 2 || align_4 == 3) {
+			return align_4;
+		}
+	}
+	return 0;
+}
+
+static int rearrange_urb_transmit_buffer(struct nxp2120_usb_bugfix *bugfix, struct urb *urb, int align_4)
+{
+	void *new_buffer;
+	dma_addr_t new_dma_addr;
+	u32 new_buffer_length;
+	u32 *org_word_buf, *new_word_buf;
+	//int copy_count;
+
+	new_buffer_length = ((urb->transfer_buffer_length+3)/4)*4 + 4*3;
+
+	new_buffer = usb_buffer_alloc(urb->dev, new_buffer_length, GFP_KERNEL, &new_dma_addr);
+	if (!new_buffer) {
+		printk("[NXP2120 USB BUGPATCH] Error: can't alloc new buffer size(%d)\n", new_buffer_length);
+		return -1;
+	}
+
+	// copy all org buffer to new buffer
+	memcpy(new_buffer, urb->transfer_buffer, urb->transfer_buffer_length);
+
+	if (urb->transfer_buffer_length > 4)
+		org_word_buf = (u32 *)urb->transfer_buffer + (urb->transfer_buffer_length-1)/4; // last buffer
+	else
+		org_word_buf = (u32 *)urb->transfer_buffer;
+
+	new_word_buf = (u32 *)new_buffer + urb->transfer_buffer_length/4;
+
+	//copy_count = new_buffer_length - urb->transfer_buffer_length;
+	new_word_buf++;
+	*new_word_buf = *org_word_buf;
+	new_word_buf++;
+	*new_word_buf = *org_word_buf;
+	new_word_buf++;
+	*new_word_buf = *org_word_buf;
+
+	bugfix->urb = urb;
+	bugfix->org_transfer_buffer = urb->transfer_buffer;
+	bugfix->org_transfer_dma = urb->transfer_dma;
+	bugfix->real_transfer_buffer_length = new_buffer_length;
+	bugfix->transfer_buffer = new_buffer;
+	bugfix->transfer_dma    = new_dma_addr;
+
+	urb->transfer_buffer = new_buffer;
+	urb->transfer_dma = new_dma_addr;
+
+#ifdef CONFIG_NXP2120_USB_BUGFIX_MSG
+    printk("Alloc: %p, 0x%x, %d(org:%x %x)\n", urb->transfer_buffer, urb->transfer_dma, bugfix->real_transfer_buffer_length, bugfix->org_transfer_buffer, bugfix->org_transfer_dma);
+#endif
+
+	return 0;
+}
+#endif
+
 static int ehci_urb_enqueue (
 	struct usb_hcd	*hcd,
 	struct urb	*urb,
@@ -843,6 +909,63 @@ static int ehci_urb_enqueue (
 	struct list_head	qtd_list;
 
 	INIT_LIST_HEAD (&qtd_list);
+
+	/* swpark add for nxp2120 usb mem read bugfix */
+#ifdef CONFIG_NXP2120_USB_BUGFIX
+	{
+		int align_4 = is_bugfix_nxp2120_usb(urb);
+		if (align_4 == 2 || align_4 == 3) {
+		    int i;
+		    unsigned t;
+		    int done = 0;
+		    t = 1;
+		    for (i=0; i<32; i++) {
+		        if ((t & ehci->dw_flag_nxp2120_bugfix) && (ehci->nxp2120_bugfix[i].urb == urb)) {/* If this urb is already used urb, not to do anything */
+		            int ret;
+		            struct nxp2120_usb_bugfix *bugfix = &ehci->nxp2120_bugfix[i];
+		            if (ehci->nxp2120_bugfix[i].transfer_buffer != urb->transfer_buffer) { /* but if this urb has new transfer address, alloc new buffer */
+		                usb_buffer_free(urb->dev, bugfix->real_transfer_buffer_length, bugfix->transfer_buffer, bugfix->transfer_dma);
+		                ret = rearrange_urb_transmit_buffer(bugfix, urb, align_4);
+		                if (ret < 0) {
+				            printk("[NXP2120 USB BUGPATCH]:1 return ENOMEM\n");
+				            return -ENOMEM;
+				        }
+		            }
+		            done = 1;
+		            break;
+		        }
+		        t <<= 1;
+		    }
+		    if (!done) {
+		        t = 1;
+		        for (i=0; i<32; i++) {
+		            if (0 == (t & ehci->dw_flag_nxp2120_bugfix)) {
+		                int ret;
+		                struct nxp2120_usb_bugfix *bugfix;
+		                bugfix = &ehci->nxp2120_bugfix[i];
+		                memset(bugfix, 0, sizeof(struct nxp2120_usb_bugfix));
+#ifdef CONFIG_NXP2120_USB_BUGFIX_MSG
+                        printk("===> Enter BugPatch: %d tr length(%d)\n", align_4, urb->transfer_buffer_length);
+#endif
+				        ret = rearrange_urb_transmit_buffer(bugfix, urb, align_4);
+				        if (ret < 0) {
+				            printk("[NXP2120 USB BUGPATCH]:2 return ENOMEM\n");
+				            return -ENOMEM;
+				        }
+				        ehci->dw_flag_nxp2120_bugfix |= t;
+				        done = 1;
+				        break;
+				    }
+				    t <<= 1;
+				}
+				if (!done) {
+				    printk("[NXP2120 USB BUGPATCH] can't alloc bugfix struct return ENOMEM\n");
+				    return -ENOMEM;
+				}
+			}
+		}
+	}
+#endif
 
 	switch (usb_pipetype (urb->pipe)) {
 	case PIPE_CONTROL:
