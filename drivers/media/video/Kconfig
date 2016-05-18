@@ -806,7 +806,7 @@ config VIDEO_CAFE_CCIC
 	  This is a video4linux2 driver for the Marvell 88ALP01 integrated
 	  CMOS camera controller.  This is the controller found on first-
 	  generation OLPC systems.
-
+	  
 config VIDEO_NEXELL
 	tristate "Nexell Camera Capture Interface driver"
 	depends on VIDEO_DEV && ARCH_NEXELL
