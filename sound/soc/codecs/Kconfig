@@ -209,6 +209,9 @@ config SND_SOC_WM8940
 config SND_SOC_WM8960
 	tristate
 
+config SND_SOC_TWO_WM8960
+	tristate
+
 config SND_SOC_WM8961
 	tristate
 
