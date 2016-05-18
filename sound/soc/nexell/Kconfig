@@ -1,0 +1,50 @@
+#
+# Copyright 2010 Nexell.
+#
+# Configuration options for the Nexell Sound
+
+config SND_NEXELL_SOC
+	tristate "Nexell SoC Audio (NX series)"
+	depends on ARCH_NEXELL
+	help
+	  Say Y or M if you want to add support for codecs attached to
+	  the AC97 and I2S interface.
+
+config SND_NEXELL_SOC_I2S
+	tristate
+
+config SND_NEXELL_SOC_AC97
+	tristate
+	
+config SND_NEXELL_SOC_SPDIF
+	tristate
+
+config SND_CODEC_CS42L52
+	tristate "cs42l52 I2S audio codec."
+	select SND_NEXELL_SOC_I2S
+	select SND_SOC_CS42L52
+
+config SND_CODEC_RT5623
+	tristate "rt5623 (Realtek) I2S audio codec."
+	select SND_NEXELL_SOC_I2S
+	select SND_SOC_RT5623
+
+config SND_CODEC_PS8738_8106
+	tristate "Pulsus ps8738(ADC), ps8106(DAC) I2S audio codec."
+	select SND_NEXELL_SOC_I2S
+	select SND_SOC_PS8738_8106
+	
+config SND_MOST2120_WM8960
+	tristate "most2120's WM8960 I2S audio codec."
+	select SND_NEXELL_SOC_I2S
+	select SND_SOC_WM8960
+
+config SND_MOST2120_AC97_TWO_WM8960
+        tristate "most2120's two WM8960 AC97 audio codec."
+        select SND_NEXELL_SOC_AC97
+        select SND_SOC_TWO_WM8960
+        
+config SND_NEXELL_SPDIF_RX
+        tristate "nxp2120's spdif-rx ports"
+        select SND_NEXELL_SOC_SPDIF
+

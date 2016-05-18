@@ -641,6 +641,12 @@ config ARCH_S5PC1XX
 	help
 	  Samsung S5PC1XX series based systems
 
+config ARCH_NEXELL
+	bool "Nexell's ARM SOC"
+	select GENERIC_CLOCKEVENTS
+	help
+	  Nexell arm based systems
+
 config ARCH_SHARK
 	bool "Shark"
 	select CPU_SA110
@@ -807,6 +813,11 @@ source "arch/arm/plat-s3c24xx/Kconfig"
 source "arch/arm/plat-s3c64xx/Kconfig"
 source "arch/arm/plat-s3c/Kconfig"
 source "arch/arm/plat-s5pc1xx/Kconfig"
+
+if ARCH_NEXELL
+source "arch/arm/plat-nexell/Kconfig"
+source "arch/arm/mach-nxp2120/Kconfig"
+endif
 
 if ARCH_S3C2410
 source "arch/arm/mach-s3c2400/Kconfig"
