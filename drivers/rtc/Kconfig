@@ -868,4 +868,12 @@ config RTC_DRV_MC13783
 	help
 	  This enables support for the Freescale MC13783 PMIC RTC
 
+config RTC_DRV_NEXELL
+	tristate "Nexell RTC"
+	depends on ARCH_NEXELL
+	help
+	  Driver for the internal RTC (Realtime Clock) module found on
+	  NX series processor.
+
+
 endif # RTC_CLASS
