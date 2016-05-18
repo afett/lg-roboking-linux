@@ -68,6 +68,112 @@
 #define WM8960_PLL4		0x37
 
 
+#define WM8960_0_LINVOL		0x0100
+#define WM8960_0_RINVOL		0x0101
+#define WM8960_0_LOUT1		0x0102
+#define WM8960_0_ROUT1		0x0103
+#define WM8960_0_CLOCK1		0x0104
+#define WM8960_0_DACCTL1		0x0105
+#define WM8960_0_DACCTL2		0x0106
+#define WM8960_0_IFACE1		0x0107
+#define WM8960_0_CLOCK2		0x0108
+#define WM8960_0_IFACE2		0x0109
+#define WM8960_0_LDAC		0x010a
+#define WM8960_0_RDAC		0x010b
+
+#define WM8960_0_RESET		0x010f
+#define WM8960_0_3D		0x0110
+#define WM8960_0_ALC1		0x0111
+#define WM8960_0_ALC2		0x0112
+#define WM8960_0_ALC3		0x0113
+#define WM8960_0_NOISEG		0x0114
+#define WM8960_0_LADC		0x0115
+#define WM8960_0_RADC		0x0116
+#define WM8960_0_ADDCTL1		0x0117
+#define WM8960_0_ADDCTL2		0x0118
+#define WM8960_0_POWER1		0x0119
+#define WM8960_0_POWER2		0x011a
+#define WM8960_0_ADDCTL3		0x011b
+#define WM8960_0_APOP1		0x011c
+#define WM8960_0_APOP2		0x011d
+
+#define WM8960_0_LINPATH		0x0120
+#define WM8960_0_RINPATH		0x0121
+#define WM8960_0_LOUTMIX		0x0122
+
+#define WM8960_0_ROUTMIX		0x0125
+#define WM8960_0_MONOMIX1		0x0126
+#define WM8960_0_MONOMIX2		0x0127
+#define WM8960_0_LOUT2		0x0128
+#define WM8960_0_ROUT2		0x0129
+#define WM8960_0_MONO		0x012a
+#define WM8960_0_INBMIX1		0x012b
+#define WM8960_0_INBMIX2		0x012c
+#define WM8960_0_BYPASS1		0x012d
+#define WM8960_0_BYPASS2		0x012e
+#define WM8960_0_POWER3		0x012f
+#define WM8960_0_ADDCTL4		0x0130
+#define WM8960_0_CLASSD1		0x0131
+
+#define WM8960_0_CLASSD3		0x0133
+#define WM8960_0_PLL1		0x0134
+#define WM8960_0_PLL2		0x0135
+#define WM8960_0_PLL3		0x0136
+#define WM8960_0_PLL4		0x0137
+
+#define WM8960_1_LINVOL		0x0200
+#define WM8960_1_RINVOL		0x0201
+#define WM8960_1_LOUT1		0x0202
+#define WM8960_1_ROUT1		0x0203
+#define WM8960_1_CLOCK1		0x0204
+#define WM8960_1_DACCTL1		0x0205
+#define WM8960_1_DACCTL2		0x0206
+#define WM8960_1_IFACE1		0x0207
+#define WM8960_1_CLOCK2		0x0208
+#define WM8960_1_IFACE2		0x0209
+#define WM8960_1_LDAC		0x020a
+#define WM8960_1_RDAC		0x020b
+
+#define WM8960_1_RESET		0x020f
+#define WM8960_1_3D		0x0210
+#define WM8960_1_ALC1		0x0211
+#define WM8960_1_ALC2		0x0212
+#define WM8960_1_ALC3		0x0213
+#define WM8960_1_NOISEG		0x0214
+#define WM8960_1_LADC		0x0215
+#define WM8960_1_RADC		0x0216
+#define WM8960_1_ADDCTL1		0x0217
+#define WM8960_1_ADDCTL2		0x0218
+#define WM8960_1_POWER1		0x0219
+#define WM8960_1_POWER2		0x021a
+#define WM8960_1_ADDCTL3		0x021b
+#define WM8960_1_APOP1		0x021c
+#define WM8960_1_APOP2		0x021d
+
+#define WM8960_1_LINPATH		0x0220
+#define WM8960_1_RINPATH		0x0221
+#define WM8960_1_LOUTMIX		0x0222
+
+#define WM8960_1_ROUTMIX		0x0225
+#define WM8960_1_MONOMIX1		0x0226
+#define WM8960_1_MONOMIX2		0x0227
+#define WM8960_1_LOUT2		0x0228
+#define WM8960_1_ROUT2		0x0229
+#define WM8960_1_MONO		0x022a
+#define WM8960_1_INBMIX1		0x022b
+#define WM8960_1_INBMIX2		0x022c
+#define WM8960_1_BYPASS1		0x022d
+#define WM8960_1_BYPASS2		0x022e
+#define WM8960_1_POWER3		0x022f
+#define WM8960_1_ADDCTL4		0x0230
+#define WM8960_1_CLASSD1		0x0231
+
+#define WM8960_1_CLASSD3		0x0233
+#define WM8960_1_PLL1		0x0234
+#define WM8960_1_PLL2		0x0235
+#define WM8960_1_PLL3		0x0236
+#define WM8960_1_PLL4		0x0237
+
 /*
  * WM8960 Clock dividers
  */
@@ -139,7 +245,6 @@
 extern struct snd_soc_dai wm8960_dai;
 extern struct snd_soc_dai wm8960_2_dai;
 extern struct snd_soc_dai wm8960_3_dai;
-extern struct snd_soc_codec_device soc_codec_dev_wm8960;
 extern struct snd_soc_codec_device soc_codec_dev_two_wm8960;
 
 #define WM8960_DRES_400R 0
