@@ -535,7 +535,7 @@ static int pll_factors(unsigned int source, unsigned int target,
 	pll_div->n = Ndiv;
 	Nmod = target % source;
 	Kpart = FIXED_PLL_SIZE * (long long)Nmod;
-
+	
 	//printk("Kpart = %d\n", Kpart);
 
 	do_div(Kpart, source);
@@ -550,7 +550,7 @@ static int pll_factors(unsigned int source, unsigned int target,
 	K /= 10;
 
 	pll_div->k = K;
-
+	
 	//printk("K = %d\n", K);
 
 	pr_debug("WM8960 PLL: N=%x K=%x pre_div=%d\n",
@@ -567,7 +567,7 @@ static int wm8960_set_dai_pll(struct snd_soc_dai *codec_dai, int pll_id,
 	static struct _pll_div pll_div;
 	int ret;
 
-	//printk("WM8960 PLL: in =%d out= %d \n", freq_in, freq_out);
+    //printk("WM8960 PLL: in =%d out= %d \n", freq_in, freq_out);
 
 	if (freq_in && freq_out) {
 		ret = pll_factors(freq_in, freq_out, &pll_div);
